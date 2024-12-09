@@ -1,0 +1,43 @@
+name: Facebook Live Stream
+
+on:
+  push: # يعمل عند تحديث ملف stream_url.txt
+    paths:
+      - stream_url.txt # يراقب تحديث ملف URL
+  workflow_dispatch: # لتشغيل العمل يدويًا
+  schedule:          # لتشغيله بناءً على جدول زمني
+    - cron: "0 * * * *" # يعمل مرة كل ساعة (UTC)
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: إعداد بيئة العمل
+      uses: actions/checkout@v3
+
+    - name: قراءة رابط M3U8
+      id: read-url
+      run: |
+        if [ -f "stream_url.txt" ]; then
+          URL=$(cat stream_url.txt)
+          echo "stream_url=$URL" >> $GITHUB_ENV
+        else
+          echo "ملف stream_url.txt غير موجود!"
+          exit 1
+        fi
+
+    - name: تثبيت FFmpeg
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ffmpeg
+
+    - name: بدء البث
+      env:
+        STREAM_KEY: FB-122144219396366309-0-AbxQn6VmB3Ch8vcX
+        STREAM_URL: ${{ env.stream_url }}
+      run: |
+        ffmpeg -re -i "$STREAM_URL" \
+          -c:v libx264 -preset veryfast -b:v 2500k -maxrate 2500k -bufsize 5000k \
+          -c:a aac -ar 44100 -b:a 128k -f flv \
+          "rtmps://live-api-s.facebook.com:443/rtmp/$STREAM_KEY"
