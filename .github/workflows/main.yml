@@ -34,7 +34,7 @@ jobs:
 
     - name: بدء البث
       env:
-        STREAM_KEY: FB-567580996013427-0-AbzDyQaip7Z7c2Dq
+        STREAM_KEY: FB-567587869346073-0-AbzAhZBiB8Ba1NRa
         STREAM_URL: ${{ env.stream_url }}
       run: |
         ffmpeg -re -i "$STREAM_URL" \
